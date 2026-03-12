@@ -77,15 +77,20 @@ Compile examples after building the macro package:
 Negative fixtures are also included under `examples/` to exercise macro
 diagnostics and type-check failures.
 
-You can also run the full fixture matrix with:
+## Tests
+Positive example behavior is covered by a dedicated test package under
+`tests/examples`. Negative example behavior is covered by a compile-fail
+harness under `tests/compile_fail`.
+
+Run everything with:
 
 ```bash
-./scripts/run_examples.sh
+./tests/run.sh
 ```
 
-Or only one half:
+Or run one half:
 
 ```bash
-./scripts/run_examples.sh positive
-./scripts/run_examples.sh negative
+./tests/run.sh unit
+./tests/run.sh compile-fail
 ```

@@ -1,0 +1,15 @@
+[dependencies]
+  cj_async_await = { path = "../.." }
+
+[package]
+  cjc-version = "1.1.0"
+  compile-option = ""
+  description = "Tests extracted from the async/await examples"
+  link-option = ""
+  name = "async_await_examples_test"
+  output-type = "dynamic"
+  override-compile-option = ""
+  src-dir = "src"
+  target-dir = ""
+  version = "1.0.0"
+  package-configuration = {}
