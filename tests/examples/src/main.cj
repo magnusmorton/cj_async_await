@@ -14,6 +14,13 @@ func computeValue(base: Int64): Int64 {
     return second
 }
 
+@async
+func computeWithAsyncLet(base: Int64): Int64 {
+    @async let first: Int64 = fetchValue(base)
+    @async let second: Int64 = fetchValue(base + 1)
+    return @await(first) + @await(second)
+}
+
 class Worker {
     @async
     func fetch(offset: Int64): Int64 {

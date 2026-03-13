@@ -18,6 +18,12 @@ public class AsyncAwaitExampleTest {
     }
 
     @TestCase
+    func asyncLetBindsAwaitableFuture(): Unit {
+        let future = computeWithAsyncLet(20)
+        @Assert(future.get(), 43)
+    }
+
+    @TestCase
     func awaitSupportsMemberCalls(): Unit {
         let future = memberAndGenericValue(1)
         @Assert(future.get(), 11)

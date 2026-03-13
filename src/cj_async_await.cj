@@ -13,14 +13,15 @@ public macro async(input: Tokens): Tokens {
     match (decl) {
         case funcDecl: FuncDecl => return rewriteAsyncFunc(funcDecl)
         case mainDecl: MainDecl => return rewriteAsyncMain(mainDecl)
-        case _ => throw MacroException("@async must be placed on a function")
+        case varDecl: VarDecl => return rewriteAsyncLet(varDecl)
+        case _ => throw MacroException("@async must be placed on a function, main, or let binding")
     }
 }
 
 public macro await(input: Tokens): Tokens {
-    let callExpr = expectCallExpr(parseExpr(input))
+    let awaitableExpr = expectAwaitableExpr(parseExpr(input))
     return quote(
-        $(callExpr).get()
+        $(awaitableExpr).get()
     )
 }
 
@@ -62,6 +63,18 @@ private func rewriteAsyncMain(mainDecl: MainDecl): Tokens {
     return mainDecl.toTokens()
 }
 
+private func rewriteAsyncLet(varDecl: VarDecl): Tokens {
+    expectAsyncLet(varDecl)
+
+    let identifier = explicitBindingIdentifier(varDecl)
+    let initializer = explicitInitializer(varDecl)
+    let valueType = explicitValueType(varDecl)
+
+    return quote(
+        let $identifier: Future<$valueType> = $(initializer)
+    )
+}
+
 private func explicitReturnType(funcDecl: FuncDecl): TypeNode {
     try {
         return funcDecl.declType
@@ -70,10 +83,52 @@ private func explicitReturnType(funcDecl: FuncDecl): TypeNode {
     }
 }
 
-private func expectCallExpr(expr: Expr): CallExpr {
-    match (expr as CallExpr) {
-        case Some(callExpr) => callExpr
-        case None => throw MacroException("@await only supports function calls in v1")
+private func explicitInitializer(varDecl: VarDecl): Expr {
+    try {
+        return varDecl.expr
+    } catch (_: ASTException) {
+        throw MacroException("@async let bindings must have an initializer")
+    }
+}
+
+private func explicitValueType(varDecl: VarDecl): TypeNode {
+    try {
+        return varDecl.declType
+    } catch (_: ASTException) {
+        throw MacroException("@async let bindings must declare an explicit value type")
+    }
+}
+
+private func expectAsyncLet(varDecl: VarDecl): Unit {
+    let varDeclTokens = varDecl.toTokens()
+    if (varDeclTokens[0].value != "let") {
+        throw MacroException("@async variable bindings only support let in v1")
+    }
+
+    try {
+        varDecl.identifier
+    } catch (_: ASTException) {
+        throw MacroException("@async let only supports a single binding name in v1")
+    }
+}
+
+private func explicitBindingIdentifier(varDecl: VarDecl): Token {
+    try {
+        return varDecl.identifier
+    } catch (_: ASTException) {
+        throw MacroException("@async let only supports a single binding name in v1")
+    }
+}
+
+private func expectAwaitableExpr(expr: Expr): Expr {
+    match (expr) {
+        case _: CallExpr => return expr
+        case _: RefExpr => return expr
+        case _: MemberAccess => return expr
+        case _: SubscriptExpr => return expr
+        case _: SpawnExpr => return expr
+        case parenExpr: ParenExpr => return expectAwaitableExpr(parenExpr.parenthesizedExpr)
+        case _ => throw MacroException("@await only supports future-producing calls and bindings in v2")
     }
 }
 

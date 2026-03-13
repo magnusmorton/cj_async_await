@@ -28,7 +28,7 @@ func fetch(): Future<Int64> {
 ```
 
 `@await(call)` is expression sugar for calling `.get()` on the result of a
-function call.
+future-producing call or bound future expression.
 
 ```cangjie
 let value = @await(fetch())
@@ -38,6 +38,22 @@ desugars to:
 
 ```cangjie
 let value = fetch().get()
+```
+
+`@async let` gives Swift-like binding sugar for the future returned by an
+`@async` function call. The declared type is the eventual value type, and the
+macro rewrites it to `Future<T>`.
+
+```cangjie
+@async let value: Int64 = fetch()
+let resolved = @await(value)
+```
+
+desugars to:
+
+```cangjie
+let value: Future<Int64> = fetch()
+let resolved = value.get()
 ```
 
 `@async main` is special-cased so you can write an async entrypoint without
@@ -62,11 +78,14 @@ main(): Int64 {
 
 ## Current limitations
 - `@async` requires an explicit return type.
-- `@await` only supports function call expressions.
+- `@async let` requires an explicit value type and a single binding name.
+- `@await` only supports future-producing calls and bound future expressions.
 - This is blocking `Future.get()` sugar, not a full structured-concurrency
   runtime.
 - Direct calls are allowed. Sync code can call an `@async` function directly
   and handle the returned `Future<T>` itself.
+- Because `@async` functions already return `Future<T>`, `@async let` is sugar
+  for binding that future, not a separate child-task runtime.
 
 ## Examples
 Compile examples after building the macro package:

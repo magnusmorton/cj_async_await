@@ -48,6 +48,8 @@ check_compile_failure() {
 
 build_macro_package
 check_compile_failure "invalid_async_missing_return" "@async functions must declare an explicit return type"
-check_compile_failure "invalid_async_non_function" "@async must be placed on a function"
-check_compile_failure "invalid_await_non_call" "@await only supports function calls in v1"
+check_compile_failure "invalid_async_non_function" "@async must be placed on a function, main, or let binding"
+check_compile_failure "invalid_async_let_missing_type" "@async let bindings must declare an explicit value type"
+check_compile_failure "invalid_async_var_binding" "@async variable bindings only support let in v1"
+check_compile_failure "invalid_await_non_call" "@await only supports future-producing calls and bindings in v2"
 check_compile_failure "invalid_await_sync_call" "undeclared identifier 'get'"
