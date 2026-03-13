@@ -1,6 +1,6 @@
 # async/await macros for the Cangjie Programming language
 This package adds experimental `async` and `await` support to Cangjie using
-macros. The purpose of this is to experiment with code agents and macro code.
+macros. The purpose of this is to experiment with LLMs and macro code.
 
 ## Import
 ```cangjie
